@@ -68,7 +68,7 @@ npm run dev
 
 Send Claude API requests to:
 ```
-POST http://localhost:3000/v1/messages
+POST http://localhost:13255/v1/messages
 ```
 
 The server will automatically route requests to available endpoints using round-robin distribution.
@@ -77,7 +77,7 @@ The server will automatically route requests to available endpoints using round-
 
 Check server status and endpoint configuration:
 ```
-GET http://localhost:3000/health
+GET http://localhost:13255/health
 ```
 
 Response example:
@@ -105,7 +105,7 @@ Response example:
 
 ### Environment Variables
 
-- `PORT`: Server port (default: 3000)
+- `PORT`: Server port (default: 13255)
 
 ### Endpoint Configuration
 
