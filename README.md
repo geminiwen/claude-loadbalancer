@@ -111,7 +111,7 @@ Response example:
 
 Each endpoint in `config/endpoints.js` must have:
 
-- `baseURL`: Claude API base URL (must end with `/api/`)
+- `baseURL`: Claude API base URL (the server will append `v1/messages` to this URL)
 - `authToken`: Authentication token for the endpoint
 
 ## Error Handling
