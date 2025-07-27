@@ -8,8 +8,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Start the load balancer server
 npm start
 
+# Start with custom configuration file
+node server.js -c /path/to/my/endpoints.js
+
 # Start in development mode with file watching
 npm run dev
+
+# Start with custom config in development
+node --watch server.js -c ./custom-config/endpoints.js
 
 # Install dependencies
 npm install
@@ -41,6 +47,12 @@ Before running the server, you must:
 2. Replace placeholder values with actual Claude API endpoints and authentication tokens
 3. Each endpoint object requires `baseURL` (ending with `/api/`) and `authToken` fields
 
+### Command Line Options
+
+- `-c <path>`: Specify custom configuration file path (defaults to `./config/endpoints`)
+  - Supports both relative and absolute paths
+  - Example: `node server.js -c /home/user/my-endpoints.js`
+
 ### Error Handling
 
 The proxy handles three types of errors:
@@ -51,5 +63,14 @@ The proxy handles three types of errors:
 ### Environment Variables
 
 - `PORT`: Server port (defaults to 3000)
+- `LOG_LEVEL`: Logging level (`debug`, `info`, `warn`, `error` - defaults to `info`)
 
-The server logs all incoming requests and proxy routing decisions for debugging purposes.
+### Logging
+
+The server uses Winston for structured logging with configurable levels:
+- `info`: Important operational information (default)
+- `debug`: Detailed debugging information including chunk transfers
+- `warn`: Warning messages for recoverable issues
+- `error`: Error conditions
+
+Example: `LOG_LEVEL=debug node server.js` for verbose logging.

@@ -3,8 +3,7 @@ const axios = require('axios');
 const cors = require('cors');
 const https = require('https');
 const winston = require('winston');
-
-const apiEndpoints = require('./config/endpoints');
+const path = require('path');
 
 // Winston 日志配置
 const logger = winston.createLogger({
@@ -29,6 +28,41 @@ const logger = winston.createLogger({
     })
   ]
 });
+
+// 解析命令行参数
+function parseCommandLineArgs() {
+  const args = process.argv.slice(2);
+  const options = {
+    configPath: './config/endpoints'  // 默认配置路径
+  };
+  
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '-c' && i + 1 < args.length) {
+      options.configPath = args[i + 1];
+      i++; // 跳过下一个参数，因为它是配置文件路径
+    }
+  }
+  
+  return options;
+}
+
+// 加载配置文件
+function loadEndpointsConfig(configPath) {
+  try {
+    // 如果路径不是绝对路径，则相对于当前工作目录
+    const absolutePath = path.isAbsolute(configPath) ? configPath : path.resolve(process.cwd(), configPath);
+    
+    logger.info(`Loading endpoints configuration from: ${absolutePath}`);
+    return require(absolutePath);
+  } catch (error) {
+    logger.error(`Failed to load endpoints configuration from ${configPath}:`, error.message);
+    logger.error('Please ensure the configuration file exists and exports a valid endpoints array.');
+    process.exit(1);
+  }
+}
+
+const options = parseCommandLineArgs();
+const apiEndpoints = loadEndpointsConfig(options.configPath);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -257,6 +291,8 @@ app.get('/health', (req, res) => {
 
 app.listen(PORT, () => {
   logger.info(`Claude API proxy server running on port ${PORT}`);
+  logger.info(`Configuration loaded from: ${options.configPath}`);
+  logger.info(`Loaded ${apiEndpoints.length} endpoint(s)`);
   logger.info(`Health check: http://localhost:${PORT}/health`);
   logger.info(`API endpoint: http://localhost:${PORT}/v1/messages`);
 });
