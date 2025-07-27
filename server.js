@@ -65,7 +65,7 @@ const options = parseCommandLineArgs();
 const apiEndpoints = loadEndpointsConfig(options.configPath);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 13255;
 
 let currentEndpointIndex = 0;
 
