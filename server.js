@@ -33,7 +33,7 @@ const logger = winston.createLogger({
 function parseCommandLineArgs() {
   const args = process.argv.slice(2);
   const options = {
-    configPath: './config/endpoints'  // 默认配置路径
+    configPath: path.resolve(__dirname, './config/endpoints')  // 默认配置路径
   };
   
   for (let i = 0; i < args.length; i++) {
