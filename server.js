@@ -45,7 +45,7 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 app.use((req, res, next) => {
-  logger.debug(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  logger.debug(`${req.method} ${req.path}`);
   next();
 });
 
@@ -64,16 +64,16 @@ app.post('/v1/messages', async (req, res) => {
       'anthropic-version': req.headers['anthropic-version'] || '2023-06-01'
     };
 
-    logger.info(`[${new Date().toISOString()}] [${requestId}] Starting ${isStream ? 'STREAM' : 'NON-STREAM'} request to ${endpoint.baseURL} (endpoint ${(currentEndpointIndex === 0 ? apiEndpoints.length : currentEndpointIndex)}/${apiEndpoints.length})`);
+    logger.info(`[${requestId}] Starting ${isStream ? 'STREAM' : 'NON-STREAM'} request to ${endpoint.baseURL} (endpoint ${(currentEndpointIndex === 0 ? apiEndpoints.length : currentEndpointIndex)}/${apiEndpoints.length})`);
     
     if (isStream) {
-      logger.info(`[${new Date().toISOString()}] [${requestId}] Initiating streaming request`);
+      logger.info(`[${requestId}] Initiating streaming request`);
       await handleStreamRequest(endpoint, req, res, headers, requestId);
       responseHandled = true;
       const duration = Date.now() - startTime;
-      logger.info(`[${new Date().toISOString()}] [${requestId}] Stream request completed in ${duration}ms`);
+      logger.info(`[${requestId}] Stream request completed in ${duration}ms`);
     } else {
-      logger.info(`[${new Date().toISOString()}] [${requestId}] Making non-stream API call`);
+      logger.info(`[${requestId}] Making non-stream API call`);
       const response = await axios.post(
         `${endpoint.baseURL}v1/messages`,
         req.body,
@@ -86,25 +86,25 @@ app.post('/v1/messages', async (req, res) => {
       const responseSize = JSON.stringify(response.data).length;
       const duration = Date.now() - startTime;
       
-      logger.info(`[${new Date().toISOString()}] [${requestId}] Non-stream response received: ${response.status}, size: ${responseSize} bytes, duration: ${duration}ms`);
+      logger.info(`[${requestId}] Non-stream response received: ${response.status}, size: ${responseSize} bytes, duration: ${duration}ms`);
       
       if (!res.headersSent) {
         res.status(response.status).json(response.data);
         responseHandled = true;
-        logger.info(`[${new Date().toISOString()}] [${requestId}] Non-stream request completed successfully`);
+        logger.info(`[${requestId}] Non-stream request completed successfully`);
       }
     }
     
   } catch (error) {
     const duration = Date.now() - startTime;
-    logger.error(`[${new Date().toISOString()}] [${requestId}] Proxy error after ${duration}ms:`, error.message);
+    logger.error(`[${requestId}] Proxy error after ${duration}ms:`, error.message);
     
     if (!responseHandled && !res.headersSent) {
       if (error.response) {
-        logger.warn(`[${new Date().toISOString()}] [${requestId}] Forwarding API error: ${error.response.status}`);
+        logger.warn(`[${requestId}] Forwarding API error: ${error.response.status}`);
         res.status(error.response.status).json(error.response.data);
       } else if (error.code === 'ECONNABORTED') {
-        logger.warn(`[${new Date().toISOString()}] [${requestId}] Request timeout after ${duration}ms`);
+        logger.warn(`[${requestId}] Request timeout after ${duration}ms`);
         res.status(408).json({
           error: {
             type: 'timeout_error',
@@ -112,7 +112,7 @@ app.post('/v1/messages', async (req, res) => {
           }
         });
       } else {
-        logger.error(`[${new Date().toISOString()}] [${requestId}] Internal server error: ${error.message}`);
+        logger.error(`[${requestId}] Internal server error: ${error.message}`);
         res.status(500).json({
           error: {
             type: 'internal_error',
@@ -136,6 +136,11 @@ async function handleStreamRequest(endpoint, req, res, headers, requestId) {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, anthropic-version, x-api-key'
     });
+
+    // 禁用 Nagle 算法，减少延迟
+    if (res.socket && typeof res.socket.setNoDelay === 'function') {
+      res.socket.setNoDelay(true);
+    }
 
     const response = await axios({
       method: 'POST',
