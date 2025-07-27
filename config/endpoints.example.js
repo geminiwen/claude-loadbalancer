@@ -1,4 +1,16 @@
 /**
+ * Claude Load Balancer Endpoints Configuration Example
+ * 
+ * Setup Instructions:
+ * 1. Copy this file to endpoints.js: cp endpoints.example.js endpoints.js
+ * 2. Replace the example configuration below with your actual Claude API endpoints
+ * 3. Each endpoint must contain both baseURL and authToken fields
+ * 4. The load balancer will automatically distribute requests across these endpoints
+ * 
+ * Configuration Format:
+ * - baseURL: Base URL for Claude API, must end with /api/
+ * - authToken: Authentication token for the corresponding endpoint
+ * 
  * Claude Load Balancer 端点配置示例
  * 
  * 使用说明：
@@ -14,18 +26,21 @@
 
 module.exports = [
   {
+    // First Claude API endpoint
     // 第一个 Claude API 端点
     baseURL: 'https://your-claude-endpoint-1.com/api/',
     authToken: 'your_auth_token_here_1'
   },
   {
+    // Second Claude API endpoint
     // 第二个 Claude API 端点  
     baseURL: 'https://your-claude-endpoint-2.com/api/',
     authToken: 'your_auth_token_here_2'
   },
+  // You can add more endpoints...
   // 可以添加更多端点...
   // {
   //   baseURL: 'https://your-claude-endpoint-3.com/api/',
-  //   authToken: 'cr_your_auth_token_here_3'
+  //   authToken: 'your_auth_token_here_3'
   // }
 ];
